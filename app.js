@@ -43,6 +43,12 @@ if (window.netlifyIdentity) {
             handleLogin(user);
         }
     });
+    
+    // Attach login button handler immediately
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => window.netlifyIdentity.open());
+    }
 }
 
 function handleLogin(loggedInUser) {
@@ -62,7 +68,6 @@ function handleLogout() {
 
 // --- Core Logic ---
 function initApp() {
-    document.getElementById('loginBtn').addEventListener('click', () => window.netlifyIdentity.open());
     document.getElementById('logoutBtn').addEventListener('click', () => window.netlifyIdentity.logout());
     document.getElementById('addStockForm').addEventListener('submit', handleAddStock);
     document.getElementById('refreshBtn').addEventListener('click', fetchMarketData);
