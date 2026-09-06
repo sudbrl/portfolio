@@ -31,7 +31,6 @@
     </header>
 
     <main class="container mx-auto p-4 flex-grow">
-        <!-- Add Stock Form -->
         <section class="bg-white p-6 rounded-lg shadow-md mb-6">
             <h2 class="text-xl font-semibold mb-4">Add Stock to Portfolio</h2>
             <form id="addStockForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -42,7 +41,6 @@
             </form>
         </section>
 
-        <!-- Portfolio Summary -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="bg-white p-4 rounded-lg shadow text-center">
                 <h3 class="text-gray-500">Total Investment</h3>
@@ -58,12 +56,10 @@
             </div>
         </section>
 
-        <!-- Loading Indicator -->
         <div id="loading" class="flex justify-center my-4 hidden">
             <div class="loader"></div>
         </div>
 
-        <!-- Stocks Table -->
         <section class="bg-white rounded-lg shadow overflow-x-auto">
             <table class="min-w-full">
                 <thead class="bg-gray-50">
@@ -74,20 +70,4 @@
                         <th class="py-3 px-4 text-right">LTP</th>
                         <th class="py-3 px-4 text-right">Current Value</th>
                         <th class="py-3 px-4 text-right">P/L</th>
-                        <th class="py-3 px-4 text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="portfolioBody">
-                    <!-- Rows will be injected here -->
-                </tbody>
-            </table>
-        </section>
-    </main>
-
-    <footer class="bg-gray-800 text-white p-4 text-center mt-6">
-        <p>&copy; 2026 NEPSE Portfolio Tracker. Data from Chukul API.</p>
-    </footer>
-
-    <script src="app.js"></script>
-</body>
-</html>
+                        
