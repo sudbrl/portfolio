@@ -4,105 +4,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEPSE Pro - Portfolio Tracker</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    >
+
     <style>
-        .sidebar { transition: all 0.3s ease; }
-        .active-link { background-color: #2563eb; color: white; }
-        .hidden-view { display: none; }
-        .loader {
-            border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%;
-            width: 40px; height: 40px; animation: spin 1s linear infinite;
+        .active-link {
+            background-color: #2563eb;
+            color: white;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .hidden-view {
+            display: none;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
+
 <body class="bg-gray-50 text-gray-800 font-sans">
 
-    <!-- Secure Login Screen -->
+    <!-- Authentication Screen -->
     <div id="authScreen" class="min-h-screen flex items-center justify-center bg-gray-900">
-        <div class="text-center text-white">
-            <h1 class="text-4xl font-bold mb-4">NEPSE Pro</h1>
-            <p class="mb-8 text-gray-400">Please log in to access your portfolio.</p>
-            <button id="loginBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg">
-                <i class="fas fa-shield-alt mr-2"></i> Secure Login
+        <div class="text-center text-white max-w-md px-4">
+            <h1 class="text-4xl font-bold mb-4">
+                NEPSE Pro
+            </h1>
+
+            <p class="mb-8 text-gray-400">
+                Please log in to access your portfolio dashboard.
+            </p>
+
+            <button
+                type="button"
+                id="loginBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg"
+            >
+                <i class="fas fa-shield-alt mr-2"></i>
+                Secure Login
             </button>
+
+            <p id="authError" class="mt-4 text-red-400 hidden"></p>
         </div>
     </div>
 
-    <!-- Main Application (Hidden until authenticated) -->
+    <!-- Main Application Screen -->
     <div id="appScreen" class="hidden min-h-screen flex flex-col md:flex-row">
-        <!-- Sidebar Navigation -->
+
+        <!-- Sidebar -->
         <aside class="w-full md:w-64 bg-gray-800 text-gray-200 flex flex-col shadow-xl">
             <div class="p-4 border-b border-gray-700 flex items-center justify-between">
-                <h1 class="text-xl font-bold text-white flex items-center"><i class="fas fa-chart-line mr-2 text-blue-400"></i> NEPSE Pro</h1>
-                <button id="logoutBtn" class="text-gray-400 hover:text-white text-sm"><i class="fas fa-sign-out-alt"></i></button>
-            </div>
-            <nav class="flex-grow p-4 space-y-2">
-                <button onclick="showView('dashboard')" id="nav-dashboard" class="w-full text-left py-2 px-4 rounded hover:bg-gray-700 active-link flex items-center">
-                    <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+                <h1 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-chart-line mr-2 text-blue-400"></i>
+                    NEPSE Pro
+                </h1>
+
+                <button
+                    type="button"
+                    id="logoutBtn"
+                    class="text-gray-400 hover:text-white text-sm"
+                    title="Log out"
+                >
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
-                <button onclick="showView('portfolio')" id="nav-portfolio" class="w-full text-left py-2 px-4 rounded hover:bg-gray-700 flex items-center">
-                    <i class="fas fa-briefcase mr-3"></i> Portfolio
+            </div>
+
+            <nav class="flex-grow p-4 space-y-2">
+                <button
+                    type="button"
+                    onclick="showView('dashboard')"
+                    id="nav-dashboard"
+                    class="w-full text-left py-2 px-4 rounded hover:bg-gray-700 active-link flex items-center"
+                >
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </button>
+
+                <button
+                    type="button"
+                    onclick="showView('portfolio')"
+                    id="nav-portfolio"
+                    class="w-full text-left py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+                >
+                    <i class="fas fa-briefcase mr-3"></i>
+                    Portfolio
                 </button>
             </nav>
+
             <div class="p-4 border-t border-gray-700 text-sm text-gray-500">
-                <p id="userEmail">Authenticated User</p>
+                <p id="userEmail">
+                    Authenticated user
+                </p>
             </div>
         </aside>
 
-        <!-- Main Content Area -->
+        <!-- Main Content -->
         <main class="flex-grow p-6 overflow-auto">
-            
+
             <!-- Dashboard View -->
             <section id="view-dashboard" class="view">
-                <h2 class="text-2xl font-bold mb-6">Executive Dashboard</h2>
+                <h2 class="text-2xl font-bold mb-6">
+                    Executive Dashboard
+                </h2>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <p class="text-sm text-gray-500 uppercase font-semibold">Total Investment</p>
-                        <p id="dash-investment" class="text-2xl font-bold text-gray-800 mt-2">NPR 0.00</p>
+                        <p class="text-sm text-gray-500 uppercase font-semibold">
+                            Total Investment
+                        </p>
+                        <p id="dash-investment" class="text-2xl font-bold text-gray-800 mt-2">
+                            NPR 0.00
+                        </p>
                     </div>
+
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <p class="text-sm text-gray-500 uppercase font-semibold">Current Value</p>
-                        <p id="dash-value" class="text-2xl font-bold text-gray-800 mt-2">NPR 0.00</p>
+                        <p class="text-sm text-gray-500 uppercase font-semibold">
+                            Current Value
+                        </p>
+                        <p id="dash-value" class="text-2xl font-bold text-gray-800 mt-2">
+                            NPR 0.00
+                        </p>
                     </div>
+
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <p class="text-sm text-gray-500 uppercase font-semibold">Total P/L</p>
-                        <p id="dash-pl" class="text-2xl font-bold text-gray-800 mt-2">NPR 0.00</p>
+                        <p class="text-sm text-gray-500 uppercase font-semibold">
+                            Total P/L
+                        </p>
+                        <p id="dash-pl" class="text-2xl font-bold text-gray-800 mt-2">
+                            NPR 0.00
+                        </p>
                     </div>
                 </div>
 
-                <!-- Analytics Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 class="text-lg font-semibold mb-4">Sector Allocation (Current Value)</h3>
-                        <div class="relative h-64"><canvas id="sectorChart"></canvas></div>
+                        <h3 class="text-lg font-semibold mb-4">
+                            Sector Allocation
+                        </h3>
+
+                        <div class="relative h-64">
+                            <canvas id="sectorChart"></canvas>
+                        </div>
                     </div>
+
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 class="text-lg font-semibold mb-4">Individual Holding Value</h3>
-                        <div class="relative h-64"><canvas id="holdingChart"></canvas></div>
+                        <h3 class="text-lg font-semibold mb-4">
+                            Holding Value
+                        </h3>
+
+                        <div class="relative h-64">
+                            <canvas id="holdingChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Portfolio Management View -->
+            <!-- Portfolio View -->
             <section id="view-portfolio" class="view hidden-view">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">My Portfolio</h2>
-                    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg shadow-sm text-sm">
-                        <i class="fas fa-sync-alt mr-2"></i> Refresh Market Data
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+                    <h2 class="text-2xl font-bold">
+                        My Portfolio
+                    </h2>
+
+                    <button
+                        type="button"
+                        id="refreshBtn"
+                        class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg shadow-sm text-sm"
+                    >
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Refresh Market Data
                     </button>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
-                    <h3 class="text-lg font-semibold mb-4">Add New Holding</h3>
-                    <form id="addStockForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <input type="text" id="symbol" placeholder="Symbol (e.g., NABIL)" class="border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
-                        <input type="number" id="quantity" placeholder="Quantity" class="border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required min="1">
-                        <input type="number" id="buyPrice" placeholder="Buy Price (NPR)" class="border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required min="0" step="0.01">
-                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg">Add Stock</button>
+                    <h3 class="text-lg font-semibold mb-4">
+                        Add New Holding
+                    </h3>
+
+                    <form
+                        id="addStockForm"
+                        class="grid grid-cols-1 md:grid-cols-4 gap-4"
+                        autocomplete="off"
+                    >
+                        <input
+                            type="text"
+                            id="symbol"
+                            placeholder="Symbol"
+                            class="border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            required
+                        >
+
+                        <input
+                            type="number"
+                            id="quantity"
+                            placeholder="Quantity"
+                            class="border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            required
+                            min="1"
+                            step="1"
+                        >
+
+                        <input
+                            type="number"
+                            id="buyPrice"
+                            placeholder="Buy Price"
+                            class="border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            required
+                            min="0"
+                            step="0.01"
+                        >
+
+                        <button
+                            type="submit"
+                            class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg"
+                        >
+                            Add Stock
+                        </button>
                     </form>
                 </div>
 
@@ -114,20 +254,45 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</th>
-                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sector</th>
-                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Buy Price</th>
-                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">LTP</th>
-                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">P/L</th>
-                                <th class="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Symbol
+                                </th>
+
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Sector
+                                </th>
+
+                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Qty
+                                </th>
+
+                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Buy Price
+                                </th>
+
+                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    LTP
+                                </th>
+
+                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Value
+                                </th>
+
+                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    P/L
+                                </th>
+
+                                <th class="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Action
+                                </th>
                             </tr>
                         </thead>
+
                         <tbody id="portfolioBody" class="bg-white divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
             </section>
+
         </main>
     </div>
 
