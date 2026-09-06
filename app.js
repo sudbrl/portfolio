@@ -41,6 +41,19 @@ if (window.netlifyIdentity) {
         locale: "en"
     });
     
+    // Attach login button handler immediately - works on all browsers
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+                window.netlifyIdentity.open();
+            } else {
+                console.error('Netlify Identity widget not loaded');
+            }
+        });
+    }
+    
     window.netlifyIdentity.on("init", user => {
         if (!user) {
             window.netlifyIdentity.on("login", handleLogin);
@@ -54,14 +67,6 @@ if (window.netlifyIdentity) {
             handleLogin(user);
         }
     });
-    
-    // Attach login button handler immediately
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
-            window.netlifyIdentity.open();
-        });
-    }
 }
 
 function handleLogin(loggedInUser) {
