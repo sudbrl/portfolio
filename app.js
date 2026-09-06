@@ -36,12 +36,20 @@ function getSector(symbol) {
 // --- Netlify Identity Authentication ---
 if (window.netlifyIdentity) {
     // Initialize Netlify Identity with signup enabled
-    window.netlifyIdentity.init();
+    window.netlifyIdentity.init({
+        container: "netlify-identity-widget",
+        locale: "en"
+    });
     
     window.netlifyIdentity.on("init", user => {
         if (!user) {
             window.netlifyIdentity.on("login", handleLogin);
             window.netlifyIdentity.on("logout", handleLogout);
+            // Handle signup completion
+            window.netlifyIdentity.on("user_created", () => {
+                // User created but needs to confirm email - keep widget open
+                console.log("User created. Please check email for confirmation.");
+            });
         } else {
             handleLogin(user);
         }
