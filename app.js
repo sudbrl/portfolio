@@ -35,6 +35,9 @@ function getSector(symbol) {
 
 // --- Netlify Identity Authentication ---
 if (window.netlifyIdentity) {
+    // Initialize Netlify Identity with signup enabled
+    window.netlifyIdentity.init();
+    
     window.netlifyIdentity.on("init", user => {
         if (!user) {
             window.netlifyIdentity.on("login", handleLogin);
@@ -47,7 +50,9 @@ if (window.netlifyIdentity) {
     // Attach login button handler immediately
     const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {
-        loginBtn.addEventListener('click', () => window.netlifyIdentity.open());
+        loginBtn.addEventListener('click', () => {
+            window.netlifyIdentity.open();
+        });
     }
 }
 
@@ -56,7 +61,6 @@ function handleLogin(loggedInUser) {
     document.getElementById('authScreen').classList.add('hidden');
     document.getElementById('appScreen').classList.remove('hidden');
     document.getElementById('userEmail').textContent = user.email;
-    window.netlifyIdentity.close();
     initApp();
 }
 
@@ -239,5 +243,3 @@ function renderHoldingChart(labels, values) {
 function formatCurrency(value) {
     return "NPR " + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-
-window.netlifyIdentity.init();
