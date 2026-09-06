@@ -1,9 +1,13 @@
-// Configuration
+// Configuration - REPLACE WITH YOUR SUPABASE CREDENTIALS
+const SUPABASE_URL = "YOUR_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 const API_URL = "/.netlify/functions/get-market";
-const LS_KEY = "nepse_portfolio_v2";
+
+// Initialize Supabase client
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // State
-let portfolio = JSON.parse(localStorage.getItem(LS_KEY)) || [];
+let portfolio = [];
 let marketData = {};
 let user = null;
 let sectorChart = null;
@@ -33,40 +37,133 @@ function getSector(symbol) {
     return SECTOR_MAP[symbol.toUpperCase()] || 'Other';
 }
 
-// --- Netlify Identity Authentication ---
-if (window.netlifyIdentity) {
-    // Initialize Netlify Identity with signup enabled
-    window.netlifyIdentity.init({
-        container: "netlify-identity-widget",
-        locale: "en"
-    });
-    
-    // Attach login button handler immediately - works on all browsers
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (window.netlifyIdentity) {
-                window.netlifyIdentity.open();
-            } else {
-                console.error('Netlify Identity widget not loaded');
-            }
-        });
+// --- Supabase Authentication ---
+
+// Check for existing session on page load
+async function checkSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        handleLogin(session.user);
     }
-    
-    window.netlifyIdentity.on("init", user => {
-        if (!user) {
-            window.netlifyIdentity.on("login", handleLogin);
-            window.netlifyIdentity.on("logout", handleLogout);
-            // Handle signup completion
-            window.netlifyIdentity.on("user_created", () => {
-                // User created but needs to confirm email - keep widget open
-                console.log("User created. Please check email for confirmation.");
-            });
+}
+
+// Initialize auth when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    checkSession();
+    setupAuthForms();
+});
+
+// Setup form handlers
+function setupAuthForms() {
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        showAuthMessage('Logging in...', 'text-blue-400');
+        
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        if (error) {
+            showAuthMessage(error.message, 'text-red-400');
         } else {
-            handleLogin(user);
+            handleLogin(data.user);
         }
     });
+    
+    // Signup form
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        
+        showAuthMessage('Creating account...', 'text-blue-400');
+        
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        
+        if (error) {
+            showAuthMessage(error.message, 'text-red-400');
+        } else {
+            showAuthMessage('Account created! Please check your email to confirm before logging in.', 'text-green-400');
+            document.getElementById('signupForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.querySelector('.mt-4.flex').classList.remove('hidden');
+        }
+    });
+    
+    // Reset password form
+    document.getElementById('resetForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('resetEmail').value;
+        
+        showAuthMessage('Sending reset link...', 'text-blue-400');
+        
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/#recover',
+        });
+        
+        if (error) {
+            showAuthMessage(error.message, 'text-red-400');
+        } else {
+            showAuthMessage('Password reset link sent! Check your email.', 'text-green-400');
+            document.getElementById('resetForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.querySelector('.mt-4.flex').classList.remove('hidden');
+        }
+    });
+    
+    // Show signup form
+    document.getElementById('showSignupBtn').addEventListener('click', () => {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.querySelector('.mt-4.flex').classList.add('hidden');
+        document.getElementById('signupForm').classList.remove('hidden');
+        hideAuthMessage();
+    });
+    
+    // Cancel signup
+    document.getElementById('cancelSignupBtn').addEventListener('click', () => {
+        document.getElementById('signupForm').classList.add('hidden');
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.querySelector('.mt-4.flex').classList.remove('hidden');
+        hideAuthMessage();
+    });
+    
+    // Show reset form
+    document.getElementById('forgotPasswordBtn').addEventListener('click', () => {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.querySelector('.mt-4.flex').classList.add('hidden');
+        document.getElementById('resetForm').classList.remove('hidden');
+        hideAuthMessage();
+    });
+    
+    // Cancel reset
+    document.getElementById('cancelResetBtn').addEventListener('click', () => {
+        document.getElementById('resetForm').classList.add('hidden');
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.querySelector('.mt-4.flex').classList.remove('hidden');
+        hideAuthMessage();
+    });
+    
+    // Listen for auth state changes
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN') {
+            handleLogin(session.user);
+        } else if (event === 'SIGNED_OUT') {
+            handleLogout();
+        }
+    });
+}
+
+function showAuthMessage(message, colorClass) {
+    const msgEl = document.getElementById('authMessage');
+    msgEl.textContent = message;
+    msgEl.className = `mt-4 text-sm ${colorClass}`;
+    msgEl.classList.remove('hidden');
+}
+
+function hideAuthMessage() {
+    document.getElementById('authMessage').classList.add('hidden');
 }
 
 function handleLogin(loggedInUser) {
@@ -74,23 +171,77 @@ function handleLogin(loggedInUser) {
     document.getElementById('authScreen').classList.add('hidden');
     document.getElementById('appScreen').classList.remove('hidden');
     document.getElementById('userEmail').textContent = user.email;
+    loadPortfolioFromSupabase();
     initApp();
 }
 
 function handleLogout() {
     user = null;
+    portfolio = [];
     document.getElementById('authScreen').classList.remove('hidden');
     document.getElementById('appScreen').classList.add('hidden');
 }
 
 // --- Core Logic ---
 function initApp() {
-    document.getElementById('logoutBtn').addEventListener('click', () => window.netlifyIdentity.logout());
+    document.getElementById('logoutBtn').addEventListener('click', handleSupabaseLogout);
     document.getElementById('addStockForm').addEventListener('submit', handleAddStock);
     document.getElementById('refreshBtn').addEventListener('click', fetchMarketData);
     
     showView('dashboard');
     fetchMarketData();
+}
+
+async function handleSupabaseLogout() {
+    await supabase.auth.signOut();
+    handleLogout();
+}
+
+// --- Supabase Portfolio Functions ---
+async function loadPortfolioFromSupabase() {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+        .from('portfolio')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('Error loading portfolio:', error);
+        return;
+    }
+    
+    // Convert Supabase data to app format
+    portfolio = data.map(item => ({
+        symbol: item.symbol,
+        quantity: item.quantity,
+        buyPrice: item.buy_price
+    }));
+    
+    renderPortfolio();
+    renderDashboard();
+}
+
+async function savePortfolioToSupabase() {
+    if (!user) return;
+    
+    // Delete all existing portfolio entries for this user
+    await supabase.from('portfolio').delete().eq('user_id', user.id);
+    
+    // Insert updated portfolio
+    const portfolioData = portfolio.map(stock => ({
+        user_id: user.id,
+        symbol: stock.symbol,
+        quantity: stock.quantity,
+        buy_price: stock.buyPrice
+    }));
+    
+    const { error } = await supabase.from('portfolio').insert(portfolioData);
+    
+    if (error) {
+        console.error('Error saving portfolio:', error);
+    }
 }
 
 window.showView = function(viewId) {
@@ -119,7 +270,7 @@ function handleAddStock(e) {
     } else {
         portfolio.push({ symbol, quantity, buyPrice });
     }
-    savePortfolio();
+    savePortfolioToSupabase();
     renderPortfolio();
     e.target.reset();
 }
@@ -127,12 +278,13 @@ function handleAddStock(e) {
 window.deleteStock = function(symbol) {
     if (confirm(`Are you sure you want to remove ${symbol}?`)) {
         portfolio = portfolio.filter(s => s.symbol !== symbol);
-        savePortfolio();
+        savePortfolioToSupabase();
         renderPortfolio();
     }
 }
 
-function savePortfolio() { localStorage.setItem(LS_KEY, JSON.stringify(portfolio)); }
+// Old localStorage function - no longer used but kept for reference
+// function savePortfolio() { localStorage.setItem(LS_KEY, JSON.stringify(portfolio)); }
 
 async function fetchMarketData() {
     document.getElementById('loading').classList.remove('hidden');

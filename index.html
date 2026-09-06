@@ -8,7 +8,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <link
         rel="stylesheet"
@@ -59,32 +60,100 @@
                 Please log in to access your portfolio dashboard.
             </p>
 
-            <button
-                type="button"
-                id="loginBtn"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg"
-            >
-                <i class="fas fa-shield-alt mr-2"></i>
-                Secure Login / Sign Up
-            </button>
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-4">
+                <input
+                    type="email"
+                    id="loginEmail"
+                    placeholder="Email"
+                    class="w-full p-3 rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    required
+                >
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Password"
+                    class="w-full p-3 rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    required
+                >
+                <button
+                    type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg"
+                >
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Login
+                </button>
+            </form>
 
-            <p class="mt-4 text-gray-400 text-sm">
-                Don't have an account? Click the button above to sign up and set your password.
-            </p>
-            
-            <p class="mt-2 text-gray-400 text-xs">
-                Forgot your password? Click "Login" then use "Forgot Password?" link.
-            </p>
+            <div class="mt-4 flex justify-between text-sm">
+                <button type="button" id="showSignupBtn" class="text-blue-400 hover:text-blue-300">
+                    Don't have an account? Sign Up
+                </button>
+                <button type="button" id="forgotPasswordBtn" class="text-blue-400 hover:text-blue-300">
+                    Forgot Password?
+                </button>
+            </div>
 
-            <p class="mt-4 text-yellow-400 text-sm">
-                <strong>Note:</strong> After signing up, you must confirm your email before logging in. Check your inbox for a confirmation link.
-            </p>
+            <!-- Signup Form (hidden by default) -->
+            <form id="signupForm" class="space-y-4 hidden mt-4">
+                <input
+                    type="email"
+                    id="signupEmail"
+                    placeholder="Email"
+                    class="w-full p-3 rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    required
+                >
+                <input
+                    type="password"
+                    id="signupPassword"
+                    placeholder="Password (min 6 characters)"
+                    class="w-full p-3 rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    required
+                    minlength="6"
+                >
+                <button
+                    type="submit"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg"
+                >
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Sign Up
+                </button>
+                <button
+                    type="button"
+                    id="cancelSignupBtn"
+                    class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-8 rounded-lg"
+                >
+                    Cancel
+                </button>
+            </form>
 
-            <p id="authError" class="mt-4 text-red-400 hidden"></p>
+            <!-- Reset Password Form (hidden by default) -->
+            <form id="resetForm" class="space-y-4 hidden mt-4">
+                <input
+                    type="email"
+                    id="resetEmail"
+                    placeholder="Email"
+                    class="w-full p-3 rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    required
+                >
+                <button
+                    type="submit"
+                    class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg"
+                >
+                    <i class="fas fa-key mr-2"></i>
+                    Send Reset Link
+                </button>
+                <button
+                    type="button"
+                    id="cancelResetBtn"
+                    class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-8 rounded-lg"
+                >
+                    Cancel
+                </button>
+            </form>
+
+            <p id="authMessage" class="mt-4 text-sm hidden"></p>
         </div>
-        
-        <!-- Hidden container for Netlify Identity Widget -->
-        <div id="netlify-identity-widget" class="hidden"></div>
     </div>
 
     <!-- Main Application Screen -->
